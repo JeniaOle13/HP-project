@@ -1,0 +1,36 @@
+Phenicol_efflux_pumps	1.80345301721			-
+Tetracycline_resistance_ribosomal_protection_proteins	5.87545609283	point_1	4.93833159717	0.00526224246281
+Rifampin_resistant_beta_subunit_of_RNA_polymerase_RpoB	3.71222799503			-
+MDR_regulator	4.12271298303			-
+EF_Tu_inhibition	3.74962967435			-
+VanC_type_resistance_protein	1.16263884775			-
+MDR_mutant_porin_proteins	2.74586654156			-
+Macrolide_phosphotransferases	3.54662874263			-
+Dihydrofolate_reductase	3.93361639023			-
+Class_A_betalactamases	5.00368091427			-
+Polymyxin_B_resistance_regulator	3.35173819126			-
+Aminoglycoside_efflux_regulator	3.05445848718			-
+Aminoglycoside_O_nucleotidyltransferases	3.7053311675	point_2	4.28850409662	0.0218253599033
+Aminoglycoside_N_acetyltransferases	3.73031864106			-
+Daptomycin_resistant_cls	2.19702114438			-
+Class_D_betalactamases	2.31942520531			-
+Class_C_betalactamases	3.04451257711			-
+Undecaprenyl_pyrophosphate_phosphatase	2.8244192921			-
+Aminoglycoside_O_phosphotransferases	4.46334457756	point_2	4.18636629338	0.0243117878988
+Chloramphenicol_acetyltransferases	4.37666493656			-
+X23S_rRNA_methyltransferases	4.94419282431	point_2	4.33075099921	0.00432286748746
+Tetracycline_resistance_major_facilitator_superfamily_MFS_efflux_pumps	3.57526718555			-
+Tetracycline_transcriptional_repressor	3.07822522585			-
+Sulfonamide_resistant_dihydropteroate_synthases	3.71154340957			-
+Tetracycline_inactivation_enzymes	4.43855894576			-
+Daptomycin_resistant_liaFSR	2.33493728739			-
+Lipid_A_modification	3.81616794471			-
+Macrolide_resistance_efflux_pumps	4.2669832781			-
+Fluoroquinolone_resistant_DNA_topoisomerases	3.87121870076			-
+Multi_drug_efflux_pumps	4.39882871455			-
+Streptogramin_resistance_ATP_binding_cassette_ABC_efflux_pumps	2.72785413677			-
+Penicillin_binding_protein	3.61004058823			-
+Aminocoumarin_resistant_DNA_topoisomerases	3.01809197653			-
+Lincosamide_nucleotidyltransferases	3.41234762461			-
+Polymyxin_resistant_phoP	2.41184992377			-
+Aminoglycoside_efflux_pumps	4.00325680555			-
