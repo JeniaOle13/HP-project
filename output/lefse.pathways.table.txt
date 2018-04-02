@@ -1,6 +1,0 @@
-Feature	LogMaxMean	Class	LDA_score	p.value
-PWY_621_sucrosedegradationIII_sucroseinvertase_	3.84866362478	point_1	3.04023441019	0.0153138217134
-ARO_PWY_chorismatebiosynthesisI	4.12654575926	point_1	3.04826638492	0.00747167134521
-PWY_6163_chorismatebiosynthesisfrom3_dehydroquinate	4.12964183928	point_1	3.05661758453	0.00628001159667
-GLYCOGENSYNTH_PWY_glycogenbiosynthesisI_fromADP_D_Glucose_	3.84334214581	point_1	3.10839138808	0.00176411430193
-PWY_6737_starchdegradationV	4.25603953274	point_1	3.33256835461	0.000757495005815

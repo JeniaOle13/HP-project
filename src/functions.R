@@ -15,499 +15,39 @@ library(stringr)
 library(ggplot2)
 library(pheatmap)
 library(ggpubr)
+library(taxize)
+library(devtools)
+library(plyr)
+library(ggpubr)
+library(Maaslin)
 
-"%ni%" <- Negate("%in%")
+
 
 # sort table by row names
 sort_tab_by_rownames <- function (tab) 
 {
-  tab[order(rownames(tab)),] 
+      tab[order(rownames(tab)),] 
 }
 
 # sort table by column names
 sort_tab_by_colnames <- function (tab) 
 {
-  tab[,order(colnames(tab))] 
+      tab[,order(colnames(tab))] 
 }
 
-####good colours for heatplot
+#### good colours for heatplot
 cols.gentleman <- function(ncol=500) {
-  library(RColorBrewer)
-  hmcol <- colorRampPalette(brewer.pal(10, 'RdBu'))(ncol)
-  return(rev(hmcol))
+      library(RColorBrewer)
+      hmcol <- colorRampPalette(brewer.pal(10, 'RdBu'))(ncol)
+      return(rev(hmcol))
 }
 
 hclustW<-function(x, ...) hclust(x, method="ward", ...)
 
 distSpear<-function (x) 
 {
-  result <- 1-cor(t(x), method='spearman', use='pair')
-  as.dist(result)
-}
-
-####modification of heatmap.2 in order to enable the use of layout() function
-hm3<-function (x, Rowv = TRUE, Colv = if (symm) "Rowv" else TRUE, 
-               distfun = dist, hclustfun = hclust, dendrogram = c("both", 
-                                                                  "row", "column", "none"), symm = FALSE, scale = c("none", 
-                                                                                                                    "row", "column"), na.rm = TRUE, revC = identical(Colv, 
-                                                                                                                                                                     "Rowv"), add.expr, breaks, symbreaks = min(x < 0, na.rm = TRUE) || 
-                 scale != "none", col = "heat.colors", colsep, rowsep, 
-               sepcolor = "white", sepwidth = c(0.05, 0.05), cellnote, notecex = 1, 
-               notecol = "cyan", na.color = par("bg"), trace = c("column", 
-                                                                 "row", "both", "none"), tracecol = "cyan", hline = median(breaks), 
-               vline = median(breaks), linecol = tracecol, margins = c(5, 
-                                                                       5), ColSideColors, RowSideColors, cexRow = 0.2 + 1/log10(nr), 
-               cexCol = 0.2 + 1/log10(nc), labRow = NULL, labCol = NULL, 
-               key = TRUE, keysize = 1.5, density.info = c("histogram", 
-                                                           "density", "none"), denscol = tracecol, symkey = min(x < 
-                                                                                                                  0, na.rm = TRUE) || symbreaks, densadj = 0.25, main = NULL, 
-               xlab = NULL, ylab = NULL, lmat = NULL, lhei = NULL, lwid = NULL, 
-               ...) 
-{
-  scale01 <- function(x, low = min(x), high = max(x)) {
-    x <- (x - low)/(high - low)
-    x
-  }
-  retval <- list()
-  scale <- if (symm && missing(scale)) 
-    "none"
-  else match.arg(scale)
-  dendrogram <- match.arg(dendrogram)
-  trace <- match.arg(trace)
-  density.info <- match.arg(density.info)
-  if (length(col) == 1 && is.character(col)) 
-    col <- get(col, mode = "function")
-  if (!missing(breaks) && (scale != "none")) 
-    warning("Using scale=\"row\" or scale=\"column\" when breaks are", 
-            "specified can produce unpredictable results.", "Please consider using only one or the other.")
-  if (is.null(Rowv) || is.na(Rowv)) 
-    Rowv <- FALSE
-  if (is.null(Colv) || is.na(Colv)) 
-    Colv <- FALSE
-  else if (Colv == "Rowv" && !isTRUE(Rowv)) 
-    Colv <- FALSE
-  if (length(di <- dim(x)) != 2 || !is.numeric(x)) 
-    stop("`x' must be a numeric matrix")
-  nr <- di[1]
-  nc <- di[2]
-  if (nr <= 1 || nc <= 1) 
-    stop("`x' must have at least 2 rows and 2 columns")
-  if (!is.numeric(margins) || length(margins) != 2) 
-    stop("`margins' must be a numeric vector of length 2")
-  if (missing(cellnote)) 
-    cellnote <- matrix("", ncol = ncol(x), nrow = nrow(x))
-  if (!inherits(Rowv, "dendrogram")) {
-    if (((!isTRUE(Rowv)) || (is.null(Rowv))) && (dendrogram %in% 
-                                                 c("both", "row"))) {
-      if (is.logical(Colv) && (Colv)) 
-        dendrogram <- "column"
-      else dedrogram <- "none"
-      warning("Discrepancy: Rowv is FALSE, while dendrogram is `", 
-              dendrogram, "'. Omitting row dendogram.")
-    }
-  }
-  if (!inherits(Colv, "dendrogram")) {
-    if (((!isTRUE(Colv)) || (is.null(Colv))) && (dendrogram %in% 
-                                                 c("both", "column"))) {
-      if (is.logical(Rowv) && (Rowv)) 
-        dendrogram <- "row"
-      else dendrogram <- "none"
-      warning("Discrepancy: Colv is FALSE, while dendrogram is `", 
-              dendrogram, "'. Omitting column dendogram.")
-    }
-  }
-  if (inherits(Rowv, "dendrogram")) {
-    ddr <- Rowv
-    rowInd <- order.dendrogram(ddr)
-  }
-  else if (is.integer(Rowv)) {
-    hcr <- hclustfun(distfun(x))
-    ddr <- as.dendrogram(hcr)
-    ddr <- reorder(ddr, Rowv)
-    rowInd <- order.dendrogram(ddr)
-    if (nr != length(rowInd)) 
-      stop("row dendrogram ordering gave index of wrong length")
-  }
-  else if (isTRUE(Rowv)) {
-    Rowv <- rowMeans(x, na.rm = na.rm)
-    hcr <- hclustfun(distfun(x))
-    ddr <- as.dendrogram(hcr)
-    ddr <- reorder(ddr, Rowv)
-    rowInd <- order.dendrogram(ddr)
-    if (nr != length(rowInd)) 
-      stop("row dendrogram ordering gave index of wrong length")
-  }
-  else {
-    rowInd <- nr:1
-  }
-  if (inherits(Colv, "dendrogram")) {
-    ddc <- Colv
-    colInd <- order.dendrogram(ddc)
-  }
-  else if (identical(Colv, "Rowv")) {
-    if (nr != nc) 
-      stop("Colv = \"Rowv\" but nrow(x) != ncol(x)")
-    if (exists("ddr")) {
-      ddc <- ddr
-      colInd <- order.dendrogram(ddc)
-    }
-    else colInd <- rowInd
-  }
-  else if (is.integer(Colv)) {
-    hcc <- hclustfun(distfun(if (symm) 
-      x
-      else t(x)))
-    ddc <- as.dendrogram(hcc)
-    ddc <- reorder(ddc, Colv)
-    colInd <- order.dendrogram(ddc)
-    if (nc != length(colInd)) 
-      stop("column dendrogram ordering gave index of wrong length")
-  }
-  else if (isTRUE(Colv)) {
-    Colv <- colMeans(x, na.rm = na.rm)
-    hcc <- hclustfun(distfun(if (symm) 
-      x
-      else t(x)))
-    ddc <- as.dendrogram(hcc)
-    ddc <- reorder(ddc, Colv)
-    colInd <- order.dendrogram(ddc)
-    if (nc != length(colInd)) 
-      stop("column dendrogram ordering gave index of wrong length")
-  }
-  else {
-    colInd <- 1:nc
-  }
-  retval$rowInd <- rowInd
-  retval$colInd <- colInd
-  retval$call <- match.call()
-  x <- x[rowInd, colInd]
-  x.unscaled <- x
-  cellnote <- cellnote[rowInd, colInd]
-  if (is.null(labRow)) 
-    labRow <- if (is.null(rownames(x))) 
-      (1:nr)[rowInd]
-  else rownames(x)
-  else labRow <- labRow[rowInd]
-  if (is.null(labCol)) 
-    labCol <- if (is.null(colnames(x))) 
-      (1:nc)[colInd]
-  else colnames(x)
-  else labCol <- labCol[colInd]
-  if (scale == "row") {
-    retval$rowMeans <- rm <- rowMeans(x, na.rm = na.rm)
-    x <- sweep(x, 1, rm)
-    retval$rowSDs <- sx <- apply(x, 1, sd, na.rm = na.rm)
-    x <- sweep(x, 1, sx, "/")
-  }
-  else if (scale == "column") {
-    retval$colMeans <- rm <- colMeans(x, na.rm = na.rm)
-    x <- sweep(x, 2, rm)
-    retval$colSDs <- sx <- apply(x, 2, sd, na.rm = na.rm)
-    x <- sweep(x, 2, sx, "/")
-  }
-  if (missing(breaks) || is.null(breaks) || length(breaks) < 
-      1) {
-    if (missing(col) || is.function(col)) 
-      breaks <- 16
-    else breaks <- length(col) + 1
-  }
-  if (length(breaks) == 1) {
-    if (!symbreaks) 
-      breaks <- seq(min(x, na.rm = na.rm), max(x, na.rm = na.rm), 
-                    length = breaks)
-    else {
-      extreme <- max(abs(x), na.rm = TRUE)
-      breaks <- seq(-extreme, extreme, length = breaks)
-    }
-  }
-  nbr <- length(breaks)
-  ncol <- length(breaks) - 1
-  if (class(col) == "function") 
-    col <- col(ncol)
-  min.breaks <- min(breaks)
-  max.breaks <- max(breaks)
-  x[x < min.breaks] <- min.breaks
-  x[x > max.breaks] <- max.breaks
-  # if (missing(lhei) || is.null(lhei)) 
-  #      lhei <- c(keysize, 4)
-  #  if (missing(lwid) || is.null(lwid)) 
-  #     lwid <- c(keysize, 4)
-  # if (missing(lmat) || is.null(lmat)) {
-  #    lmat <- rbind(4:3, 2:1)
-  #   if (!missing(ColSideColors)) {
-  #      if (!is.character(ColSideColors) || length(ColSideColors) != 
-  #         nc) 
-  #        stop("'ColSideColors' must be a character vector of length ncol(x)")
-  #     lmat <- rbind(lmat[1, ] + 1, c(NA, 1), lmat[2, ] + 
-  #        1)
-  #   lhei <- c(lhei[1], 0.2, lhei[2])
-  #  }
-  #     if (!missing(RowSideColors)) {
-  #        if (!is.character(RowSideColors) || length(RowSideColors) != 
-  #           nr) 
-  #          stop("'RowSideColors' must be a character vector of length nrow(x)")
-  #     lmat <- cbind(lmat[, 1] + 1, c(rep(NA, nrow(lmat) - 
-  #        1), 1), lmat[, 2] + 1)
-  #   lwid <- c(lwid[1], 0.2, lwid[2])
-  #  }
-  #     lmat[is.na(lmat)] <- 0
-  #}
-  #if (length(lhei) != nrow(lmat)) 
-  #      stop("lhei must have length = nrow(lmat) = ", nrow(lmat))
-  # if (length(lwid) != ncol(lmat)) 
-  #     stop("lwid must have length = ncol(lmat) =", ncol(lmat))
-  # op <- par(no.readonly = TRUE)
-  # on.exit(par(op))
-  # layout(lmat, widths = lwid, heights = lhei, respect = FALSE)
-  if (!missing(RowSideColors)) {
-    par(mar = c(margins[1], 0, 0, 0.5))
-    image(rbind(1:nr), col = RowSideColors[rowInd], axes = FALSE)
-  }
-  if (!missing(ColSideColors)) {
-    par(mar = c(0.5, 0, 0, margins[2]))
-    image(cbind(1:nc), col = ColSideColors[colInd], axes = FALSE)
-  }
-  par(mar = c(margins[1], 0, 0, margins[2]))
-  x <- t(x)
-  cellnote <- t(cellnote)
-  if (revC) {
-    iy <- nr:1
-    if (exists("ddr")) 
-      ddr <- rev(ddr)
-    x <- x[, iy]
-    cellnote <- cellnote[, iy]
-  }
-  else iy <- 1:nr
-  image(1:nc, 1:nr, x, xlim = 0.5 + c(0, nc), ylim = 0.5 + 
-          c(0, nr), axes = FALSE, xlab = "", ylab = "", col = col, 
-        breaks = breaks, ...)
-  retval$carpet <- x
-  if (exists("ddr")) 
-    retval$rowDendrogram <- ddr
-  if (exists("ddc")) 
-    retval$colDendrogram <- ddc
-  retval$breaks <- breaks
-  retval$col <- col
-  if (!invalid(na.color) & any(is.na(x))) {
-    mmat <- ifelse(is.na(x), 1, NA)
-    image(1:nc, 1:nr, mmat, axes = FALSE, xlab = "", ylab = "", 
-          col = na.color, add = TRUE)
-  }
-  axis(1, 1:nc, labels = labCol, las = 2, line = -0.5, tick = 0, 
-       cex.axis = cexCol)
-  if (!is.null(xlab)) 
-    mtext(xlab, side = 1, line = margins[1] - 1.25)
-  axis(4, iy, labels = labRow, las = 2, line = -0.5, tick = 0, 
-       cex.axis = cexRow)
-  if (!is.null(ylab)) 
-    mtext(ylab, side = 4, line = margins[2] - 1.25)
-  if (!missing(add.expr)) 
-    eval(substitute(add.expr))
-  if (!missing(colsep)) 
-    for (csep in colsep) rect(xleft = csep + 0.5, ybottom = rep(0, 
-                                                                length(csep)), xright = csep + 0.5 + sepwidth[1], 
-                              ytop = rep(ncol(x) + 1, csep), lty = 1, lwd = 1, 
-                              col = sepcolor, border = sepcolor)
-  if (!missing(rowsep)) 
-    for (rsep in rowsep) rect(xleft = 0, ybottom = (ncol(x) + 
-                                                      1 - rsep) - 0.5, xright = nrow(x) + 1, ytop = (ncol(x) + 
-                                                                                                       1 - rsep) - 0.5 - sepwidth[2], lty = 1, lwd = 1, 
-                              col = sepcolor, border = sepcolor)
-  min.scale <- min(breaks)
-  max.scale <- max(breaks)
-  x.scaled <- scale01(t(x), min.scale, max.scale)
-  if (trace %in% c("both", "column")) {
-    retval$vline <- vline
-    vline.vals <- scale01(vline, min.scale, max.scale)
-    for (i in colInd) {
-      if (!is.null(vline)) {
-        abline(v = i - 0.5 + vline.vals, col = linecol, 
-               lty = 2)
-      }
-      xv <- rep(i, nrow(x.scaled)) + x.scaled[, i] - 0.5
-      xv <- c(xv[1], xv)
-      yv <- 1:length(xv) - 0.5
-      lines(x = xv, y = yv, lwd = 1, col = tracecol, type = "s")
-    }
-  }
-  if (trace %in% c("both", "row")) {
-    retval$hline <- hline
-    hline.vals <- scale01(hline, min.scale, max.scale)
-    for (i in rowInd) {
-      if (!is.null(hline)) {
-        abline(h = i + hline, col = linecol, lty = 2)
-      }
-      yv <- rep(i, ncol(x.scaled)) + x.scaled[i, ] - 0.5
-      yv <- rev(c(yv[1], yv))
-      xv <- length(yv):1 - 0.5
-      lines(x = xv, y = yv, lwd = 1, col = tracecol, type = "s")
-    }
-  }
-  if (!missing(cellnote)) 
-    text(x = c(row(cellnote)), y = c(col(cellnote)), labels = c(cellnote), 
-         col = notecol, cex = notecex)
-  par(mar = c(margins[1], 0, 0, 0))
-  if (dendrogram %in% c("both", "row")) {
-    plot(ddr, horiz = TRUE, axes = FALSE, yaxs = "i", leaflab = "none")
-  }
-  else plot.new()
-  par(mar = c(0, 0, if (!is.null(main)) 5 else 0, margins[2]))
-  if (dendrogram %in% c("both", "column")) {
-    plot(ddc, axes = FALSE, xaxs = "i", leaflab = "none")
-  }
-  else plot.new()
-  if (!is.null(main)) 
-    title(main, cex.main = 1.5 * op[["cex.main"]])
-  if (key) {
-    par(mar = c(5, 4, 2, 1), cex = 0.75)
-    tmpbreaks <- breaks
-    if (symkey) {
-      max.raw <- max(abs(c(x, breaks)), na.rm = TRUE)
-      min.raw <- -max.raw
-      tmpbreaks[1] <- -max(abs(x), na.rm = TRUE)
-      tmpbreaks[length(tmpbreaks)] <- max(abs(x), na.rm = TRUE)
-    }
-    else {
-      min.raw <- min(x, na.rm = TRUE)
-      max.raw <- max(x, na.rm = TRUE)
-    }
-    z <- seq(min.raw, max.raw, length = length(col))
-    image(z = matrix(z, ncol = 1), col = col, breaks = tmpbreaks, 
-          xaxt = "n", yaxt = "n")
-    par(usr = c(0, 1, 0, 1))
-    lv <- pretty(breaks)
-    xv <- scale01(as.numeric(lv), min.raw, max.raw)
-    axis(1, at = xv, labels = lv)
-    if (scale == "row") 
-      mtext(side = 1, "Row Z-Score", line = 2)
-    else if (scale == "column") 
-      mtext(side = 1, "Column Z-Score", line = 2)
-    else mtext(side = 1, "Value", line = 2)
-    if (density.info == "density") {
-      dens <- density(x, adjust = densadj, na.rm = TRUE)
-      omit <- dens$x < min(breaks) | dens$x > max(breaks)
-      dens$x <- dens$x[-omit]
-      dens$y <- dens$y[-omit]
-      dens$x <- scale01(dens$x, min.raw, max.raw)
-      lines(dens$x, dens$y/max(dens$y) * 0.95, col = denscol, 
-            lwd = 1)
-      axis(2, at = pretty(dens$y)/max(dens$y) * 0.95, pretty(dens$y))
-      title("Color Key\nand Density Plot")
-      par(cex = 0.5)
-      mtext(side = 2, "Density", line = 2)
-    }
-    else if (density.info == "histogram") {
-      h <- hist(x, plot = FALSE, breaks = breaks)
-      hx <- scale01(breaks, min.raw, max.raw)
-      hy <- c(h$counts, h$counts[length(h$counts)])
-      lines(hx, hy/max(hy) * 0.95, lwd = 1, type = "s", 
-            col = denscol)
-      axis(2, at = pretty(hy)/max(hy) * 0.95, pretty(hy))
-      title("Color Key\nand Histogram")
-      par(cex = 0.5)
-      mtext(side = 2, "Count", line = 2)
-    }
-    else title("Color Key")
-  }
-  else plot.new()
-  retval$colorTable <- data.frame(low = retval$breaks[-length(retval$breaks)], 
-                                  high = retval$breaks[-1], color = retval$col)
-  invisible(retval)
-}
-
-UniteMatrices <- function(t1, t2)
-{
-  if (all(is.na(t1))){return(t2)}
-  if (all(is.na(t2))){return(t1)}
-  uc <- sort(union(colnames(t1), colnames(t2)))
-  ur <- c(rownames(t1), rownames(t2))
-  t <- matrix(0, nrow = nrow(t1) + nrow(t2), ncol = length(uc))
-  colnames(t) <- uc
-  rownames(t) <- ur
-  # !!!
-  t[rownames(t1), colnames(t1)] <- t1
-  t[rownames(t2), colnames(t2)] <- t2
-  identical(t1, t[rownames(t1), colnames(t1)])
-  identical(t2, t[rownames(t2), colnames(t2)])
-  t
-}
-
-wilcox_feats_both_dirs <- function(feat, group1, group2, maxpv=0.05, pairedt)
-{ 
-  # CHOOSE SIGNIFICANT FEATURES
-  w <- sapply(colnames(feat), function(i) {
-    res <- wilcox.test(feat[group1, i], feat[group2, i], paired=pairedt, alternative = 'two.sided')
-    res$p.value
-  })
-  w_adj <- p.adjust(w, method='fdr')
-  significant_feats <- names(w_adj[w_adj<maxpv])
-  significant_feats <- significant_feats[!is.na(significant_feats)]
-  
-  # LESS OR GREATER
-  w_greater <- sapply(significant_feats, function(i) {
-    res <- wilcox.test(feat[group1, i], feat[group2, i], paired=pairedt, alternative="greater")    
-    res$p.value
-  })  
-  
-  w_less <- sapply(significant_feats, function(i) {
-    res <- wilcox.test(feat[group1, i], feat[group2, i], paired=pairedt, alternative="less")    
-    res$p.value
-  })
-  w_greater_adj <- p.adjust(w_greater, method='fdr')
-  w_less_adj <- p.adjust(w_less, method='fdr') 
-  w_greater_adj <- w_greater_adj[w_greater_adj<maxpv]
-  w_less_adj <- w_less_adj[w_less_adj<maxpv]
-  
-  # 
-  fcg <- sapply(names(w_greater_adj), function(i) {
-    res <- as.numeric(mean(feat[group1, i])/mean(feat[group2, i]))
-  })
-  
-  fcl <- sapply(names(w_less_adj), function(i) {
-    res <- as.numeric(mean(feat[group1, i])/mean(feat[group2, i]))
-  })
-  
-  
-  medg1 <- sapply(names(w_greater_adj), function(i) {
-    res <- as.numeric(mean(feat[group1, i]))
-  })
-  sdg1 <- sapply(names(w_greater_adj), function(i) {
-    res <- as.numeric(sd(feat[group1, i]))
-  })
-  
-  medg2 <- sapply(names(w_greater_adj), function(i) {
-    res <- as.numeric(mean(feat[group2, i]))
-  })
-  sdg2 <- sapply(names(w_greater_adj), function(i) {
-    res <- as.numeric(sd(feat[group2, i]))
-  })
-  
-  medl1 <- sapply(names(w_less_adj), function(i) {
-    res <- as.numeric(mean(feat[group1, i]))
-  })
-  sdl1 <- sapply(names(w_less_adj), function(i) {
-    res <- as.numeric(sd(feat[group1, i]))
-  })
-  
-  medl2 <- sapply(names(w_less_adj), function(i) {
-    res <- as.numeric(mean(feat[group2, i]))
-  })
-  sdl2 <- sapply(names(w_less_adj), function(i) {
-    res <- as.numeric(sd(feat[group2, i]))
-  })
-  
-  res <- list(greater=w_greater_adj, 
-              greater_mean_1 = medg1,
-              greater_sd_1 = sdg1,
-              greater_mean_2 = medg2,
-              greater_sd_2 = sdg2,
-              less=w_less_adj,
-              less_mean_1 = medl1,
-              less_sd_1 = sdl1,
-              less_mean_2 = medl2,
-              less_sd_2 = sdl2
-  )
-  res
+      result <- 1-cor(t(x), method='spearman', use='pair')
+      as.dist(result)
 }
 
 ggplot_boxplot <- function(data){
@@ -550,3 +90,248 @@ extract_bray_value <- function(data){
       
       return(dt.l)
 }
+
+siegel.tukey <- function(x, y, id.col = FALSE, adjust.median = F, 
+                         rnd = -1, alternative = "two.sided", mu = 0, paired = FALSE, 
+                         exact = FALSE, correct = TRUE, conf.int = FALSE, conf.level = 0.95) {
+      ###### published on:
+      #   http://www.r-statistics.com/2010/02/siegel-tukey-a-non-parametric-test-for-equality-in-variability-r-code/
+      ## Main author of the function:  Daniel Malter
+      
+      # x: a vector of data
+      
+      # y: Group indicator (if id.col=TRUE); data of the second
+      #   group (if
+      # id.col=FALSE). If y is the group indicator it MUST take 0
+      #   or 1 to indicate
+      # the groups, and x must contain the data for both groups.
+      
+      # id.col: If TRUE (default), then x is the data column and y
+      #   is the ID column,
+      # indicating the groups. If FALSE, x and y are both data
+      #   columns. id.col must
+      # be FALSE only if both data columns are of the same length.
+      
+      # adjust.median: Should between-group differences in medians
+      #   be leveled before
+      # performing the test? In certain cases, the Siegel-Tukey
+      #   test is susceptible
+      # to median differences and may indicate significant
+      #   differences in
+      # variability that, in reality, stem from differences in
+      #   medians.
+      
+      # rnd: Should the data be rounded and, if so, to which
+      #   decimal? The default
+      # (-1) uses the data as is. Otherwise, rnd must be a
+      #   non-negative integer.
+      # Typically, this option is not needed. However,
+      #   occasionally, differences in
+      # the precision with which certain functions return values
+      #   cause the merging
+      # of two data frames to fail within the siegel.tukey
+      #   function. Only then
+      # rounding is necessary. This operation should not be
+      #   performed if it affects
+      # the ranks of observations.
+      
+      # … arguments passed on to the Wilcoxon test. See
+      #   ?wilcox.test
+      
+      # Value: Among other output, the function returns the data,
+      #   the Siegel-Tukey
+      # ranks, the associated Wilcoxon’s W and the p-value for a
+      #   Wilcoxon test on
+      # tie-adjusted Siegel-Tukey ranks (i.e., it performs and
+      #   returns a
+      # Siegel-Tukey test). If significant, the group with the
+      #   smaller rank sum has
+      # greater variability.
+      
+      # References: Sidney Siegel and John Wilder Tukey (1960) “A
+      #   nonparametric sum
+      # of ranks procedure for relative spread in unpaired
+      #   samples.” Journal of the
+      # American Statistical Association. See also, David J.
+      #   Sheskin (2004)
+      # ”Handbook of parametric and nonparametric statistical
+      #   procedures.” 3rd
+      # edition. Chapman and Hall/CRC. Boca Raton, FL.
+      
+      # Notes: The Siegel-Tukey test has relatively low power and
+      #   may, under certain
+      # conditions, indicate significance due to differences in
+      #   medians rather than
+      # differences in variabilities (consider using the argument
+      #   adjust.median).
+      
+      # Output (in this order)
+      
+      # 1. Group medians (after median adjustment if specified)
+      # 2. Wilcoxon-test for between-group differences in medians
+      #   (after the median
+      # adjustment if specified)
+      # 3. Data, group membership, and the Siegel-Tukey ranks
+      # 4. Mean Siegel-Tukey rank by group (smaller values indicate
+      #   greater
+      # variability)
+      # 5. Siegel-Tukey test (Wilcoxon test on tie-adjusted
+      #   Siegel-Tukey ranks)
+      
+      is.formula <- function(x) class(x) == "formula"
+      
+      if (is.formula(x)) {
+            y <- do.call(c, list(as.name(all.vars(x)[2])), envir = parent.frame(2))
+            x <- do.call(c, list(as.name(all.vars(x)[1])), envir = parent.frame(2))  # I am using parent.frame(2) since if the name of the variable in the equation is 'x', then we will mistakenly get the function in here instead of the vector.
+            id.col <- TRUE
+            # print(x)
+            # print(ls.str())
+            # data=data.frame(c(x,y),rep(c(0,1),c(length(x),length(y))))
+            # print(data)
+      }
+      
+      if (id.col == FALSE) {
+            data = data.frame(c(x, y), rep(c(0, 1), c(length(x), length(y))))
+      } else {
+            data = data.frame(x, y)
+      }
+      names(data) = c("x", "y")
+      data = data[order(data$x), ]
+      if (rnd > -1) {
+            data$x = round(data$x, rnd)
+      }
+      
+      if (adjust.median == T) {
+            cat("\n", "Adjusting medians...", "\n", sep = "")
+            data$x[data$y == 0] = data$x[data$y == 0] - (median(data$x[data$y == 
+                                                                             0]))
+            data$x[data$y == 1] = data$x[data$y == 1] - (median(data$x[data$y == 
+                                                                             1]))
+      }
+      cat("\n", "Median of group 1 = ", median(data$x[data$y == 0]), 
+          "\n", sep = "")
+      cat("Median of group 2 = ", median(data$x[data$y == 1]), "\n", 
+          "\n", sep = "")
+      cat("Testing median differences...", "\n")
+      print(wilcox.test(data$x[data$y == 0], data$x[data$y == 1]))
+      
+      # The following must be done for the case when id.col==F
+      x <- data$x
+      y <- data$y
+      
+      cat("Performing Siegel-Tukey rank transformation...", "\n", 
+          "\n")
+      
+      
+      
+      sort.x <- sort(data$x)
+      sort.id <- data$y[order(data$x)]
+      
+      data.matrix <- data.frame(sort.x, sort.id)
+      
+      base1 <- c(1, 4)
+      iterator1 <- matrix(seq(from = 1, to = length(x), by = 4)) - 
+            1
+      rank1 <- apply(iterator1, 1, function(x) x + base1)
+      
+      iterator2 <- matrix(seq(from = 2, to = length(x), by = 4))
+      base2 <- c(0, 1)
+      rank2 <- apply(iterator2, 1, function(x) x + base2)
+      
+      #print(rank1)
+      #print(rank2)
+      
+      if (length(rank1) == length(rank2)) {
+            rank <- c(rank1[1:floor(length(x)/2)], rev(rank2[1:ceiling(length(x)/2)]))
+      } else {
+            rank <- c(rank1[1:ceiling(length(x)/2)], rev(rank2[1:floor(length(x)/2)]))
+      }
+      
+      
+      unique.ranks <- tapply(rank, sort.x, mean)
+      unique.x <- as.numeric(as.character(names(unique.ranks)))
+      
+      rank.matrix <- data.frame(unique.x, unique.ranks)
+      
+      ST.matrix <- merge(data.matrix, rank.matrix, by.x = "sort.x", 
+                         by.y = "unique.x")
+      
+      print(ST.matrix)
+      
+      cat("\n", "Performing Siegel-Tukey test...", "\n", sep = "")
+      
+      ranks0 <- ST.matrix$unique.ranks[ST.matrix$sort.id == 0]
+      ranks1 <- ST.matrix$unique.ranks[ST.matrix$sort.id == 1]
+      
+      cat("\n", "Mean rank of group 0: ", mean(ranks0), "\n", sep = "")
+      cat("Mean rank of group 1: ", mean(ranks1), "\n", sep = "")
+      
+      print(wilcox.test(ranks0, ranks1, alternative = alternative, 
+                        mu = mu, paired = paired, exact = exact, correct = correct, 
+                        conf.int = conf.int, conf.level = conf.level))
+} 
+
+
+
+
+
+
+
+if(F) {
+      
+      #Example:
+      
+      ### 1
+      x=c(4,4,5,5,6,6)
+      y=c(0,0,1,9,10,10)
+      siegel.tukey(x,y, F)
+      siegel.tukey(x,y) #same as above
+      
+      ### 2
+      # example for a non equal number of cases:
+      x=c(4,4,5,5,6,6)
+      y=c(0,0,1,9,10)
+      siegel.tukey(x,y,F)
+      
+      ### 3
+      x <- c(33, 62, 84, 85, 88, 93, 97, 4, 16, 48, 51, 66, 98)
+      id <- c(0,0,0,0,0,0,0,1,1,1,1,1,1)
+      siegel.tukey(x,id,T)
+      siegel.tukey(x~id) # from now on, this also works as a function...
+      siegel.tukey(x,id,T,adjust.median=F,exact=T)
+      
+      ### 4
+      x<-c(177,200,227,230,232,268,272,297,47,105,126,142,158,172,197,220,225,230,262,270)
+      id<-c(rep(0,8),rep(1,12))
+      siegel.tukey(x,id,T,adjust.median=T)
+      
+      
+      ### 5
+      x=c(33,62,84,85,88,93,97)
+      y=c(4,16,48,51,66,98) 
+      siegel.tukey(x,y)
+      
+      ### 6
+      x<-c(0,0,1,4,4,5,5,6,6,9,10,10)
+      id<-c(0,0,0,1,1,1,1,1,1,0,0,0)
+      siegel.tukey(x,id,T)
+      
+      ### 7
+      x <- c(85,106,96, 105, 104, 108, 86)
+      id<-c(0,0,1,1,1,1,1)
+      siegel.tukey(x,id,T)
+      
+}
+
+pal <- function(col, border = "light gray", ...){
+      n <- length(col)
+      plot(0, 0, type="n", xlim = c(0, 1), ylim = c(0, 1),
+           axes = FALSE, xlab = "", ylab = "", ...)
+      rect(0:(n-1)/n, 0, 1:n/n, 1, col = col, border = border)
+}
+
+tol14rainbow=c("#882E72", "#B178A6", "#D6C1DE", "#1965B0", "#5289C7", "#7BAFDE", "#4EB265", "#90C987", "#CAE0AB", "#F7EE55", "#F6C141", "#F1932D", "#E8601C", "#DC050C")
+tol15rainbow=c("#114477", "#4477AA", "#77AADD", "#117755", "#44AA88", "#99CCBB", "#777711", "#AAAA44", "#DDDD77", "#771111", "#AA4444", "#DD7777", "#771144", "#AA4477", "#DD77AA")
+tol18rainbow=c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", "#117777", "#44AAAA", "#77CCCC", "#777711", "#AAAA44", "#DDDD77", "#774411", "#AA7744", "#DDAA77", "#771122", "#AA4455", "#DD7788")
+# ...and finally, the Paul Tol 21-color salute
+tol21rainbow= c("#771155", "#AA4488", "#CC99BB", "#114477", "#4477AA", "#77AADD", "#117777", "#44AAAA", "#77CCCC", "#117744", "#44AA77", "#88CCAA", "#777711", "#AAAA44", "#DDDD77", "#774411", "#AA7744", "#DDAA77", "#771122", "#AA4455", "#DD7788")

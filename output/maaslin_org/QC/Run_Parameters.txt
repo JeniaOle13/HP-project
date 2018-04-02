@@ -1,0 +1,23 @@
+Parameters used in the MaAsLin run
+Optional input read.config file= config.input.org.txt
+Optional R file= 
+FDR threshold for pdf generation= 0.2
+Minimum relative abundance= 1e-04
+Minimum percentage of samples with measurements= 0.01
+The fence used to define outliers with a quantile based analysis. If set to 0, the Grubbs test was used= 0
+Ignore if the Grubbs test was not used. The significance level used as a cut-off to define outliers= 0.05
+These covariates are treated as random covariates and not fixed covariates= 
+The type of multiple testing correction used= BH
+Zero inflated inference models were turned on= FALSE
+Feature selection step= boost
+Statistical inference step= lm
+Numeric transform used= asinsqrt
+Quality control was run= TRUE
+These covariates were forced into each model= 
+These features' data were not changed by QC processes= 
+Output verbosity= DEBUG
+Log file was generated= TRUE
+Data plots were inverted= FALSE
+Ignore unless boosting was used. The threshold for the rel.inf used to select features= NA
+All verses all inference method was used= FALSE
+Ignore unless penalized feature selection was used. Alpha to determine the type of penalty= 0.95

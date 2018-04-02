@@ -1,0 +1,28 @@
+Variable	Feature	Value	Coefficient	N	N not 0	P-value	Q-value
+Time_point_number	Ruminococcus_callidus	Time_point_number2	-0.27463372305026	80	30	1.7755818314852e-05	0.00121183459998865
+Time_point_number	Ruminococcus_lactaris	Time_point_number2	-0.254317692432197	80	43	0.00230627743755478	0.0484318261886503
+Time_point_number	Roseburia_hominis	Time_point_number2	-0.284236145285121	80	52	3.3118590199575e-05	0.0018082750248968
+Time_point_number	Eubacterium_ventriosum	Time_point_number2	-0.213462948279991	80	45	0.000618877684220851	0.0168953607792292
+Time_point_number	Eubacterium_biforme	Time_point_number2	-0.214394470801129	80	35	0.00166813576688745	0.0379500886966895
+							
+Time_point_number	Bifidobacterium	Time_point_number2	-0.3674261020098	80	51	6.50021633176229e-08	8.77529204787909e-06
+Time_point_number	Bifidobacterium_adolescentis	Time_point_number2	-0.299795154380402	80	35	5.52874696412935e-07	0.000150934792120731
+Time_point_number	Bifidobacterium_longum	Time_point_number2	-0.186511882946025	80	32	0.00015968669860294	0.00544930858982534
+							
+Time_point_number	Collinsella	Time_point_number2	-0.235835534766167	80	47	2.2937697466442e-07	1.54829457898483e-05
+Time_point_number	Collinsella_aerofaciens	Time_point_number2	-0.225377467828269	80	45	1.19486492294099e-06	0.000163099061981444
+							
+Time_point_number	Dorea	Time_point_number2	-0.29994628824762	80	75	1.33466492673232e-06	6.00599217029545e-05
+Time_point_number	Dorea_longicatena	Time_point_number2	-0.252130641085972	80	70	6.87611046309256e-05	0.00312863026070711
+							
+Time_point_number	Akkermansia	Time_point_number2	-0.198376940857066	80	27	1.9676220701953e-06	6.64072448690913e-05
+Time_point_number	Akkermansia_muciniphila	Time_point_number2	-0.198376940857066	80	27	2.28688714713158e-06	0.000208106730388974
+							
+Time_point_number	Bacteroidales_noname	Time_point_number2	-0.144230630872507	80	35	0.00012926650802729	0.00349019571673682
+Time_point_number	Bacteroidales_bacterium_ph8	Time_point_number2	-0.144230630872507	80	35	0.00012926650802729	0.0050413938130643
+							
+Time_point_number	Dialister	Time_point_number2	-0.186260952207263	80	29	0.00040895751520663	0.00920154409214917
+Time_point_number	Dialister_invisus	Time_point_number2	-0.178500436266287	80	28	0.000727467971656589	0.0180544323874772
+							
+Time_point_number	Coprococcus	Time_point_number2	-0.243899105737375	80	72	0.000969691991288984	0.0187012026891447
+Time_point_number	Coprococcus_catus	Time_point_number2	-0.209476086554369	80	65	0.000267337108562512	0.00810922562639619

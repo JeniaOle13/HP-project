@@ -1,5 +1,0 @@
-Feature	LogMaxMean	Class	LDA_score	p.value
-Aminoglycoside_O_phosphotransferases	4.46334457756	point_2	4.18636629338	0.0243117878988
-Aminoglycoside_O_nucleotidyltransferases	3.7053311675	point_2	4.28850409662	0.0218253599033
-X23S_rRNA_methyltransferases	4.94419282431	point_2	4.33075099921	0.00432286748746
-Tetracycline_resistance_ribosomal_protection_proteins	5.87545609283	point_1	4.93833159717	0.00526224246281

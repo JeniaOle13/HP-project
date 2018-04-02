@@ -72,8 +72,8 @@ point_1 <- c("Hp_21-11", "Hp_21-21", "Hp_23-14", "Hp_23-9", "Hp_5-10", "Hp_5-7")
 point_2 <- c("Hp_22-10", "Hp_22-12", "Hp_24-1", "Hp_24-3", "Hp_6-10", "Hp_6-9")
 point_3 <- c("Hp_7-8")
 
-samples <- as.data.frame(rbind(cbind(sample = point_1, value = "first_point"), 
-                               cbind(sample = point_2, value = "second_point"), 
+samples <- as.data.frame(rbind(cbind(sample = point_1, value = "1st point"), 
+                               cbind(sample = point_2, value = "2nd point"), 
                                cbind(sample = point_3, value = "third_point")))
 
 rownames(samples) <- samples$sample
@@ -91,82 +91,80 @@ rownames(full.data) <- sapply(str_split(rownames(full.data) , "\\."), function(x
 rownames(full.data) <- sapply(lapply(str_split(rownames(full.data), "_"), function(x) head(x, 2)), function(x) paste(x, collapse = "_"))
 full.data.sbs <- full.data[!rownames(full.data) %in% c("Hp_6-9", "Hp_21-11", "Hp_21-21", "Hp_22-10", "Hp_22-12", "Hp_24-1"),]
 full.data.sbs <- full.data.sbs[,colSums(full.data.sbs) > 0]
-lol1 <- full.data.sbs
 
-# pheatmap(t(full.data.sbs[!colnames(full.data.sbs) %in% c("ERM", "ERMC", "ERMR", "ERMT")]), 
+pheatmap(t(full.data.sbs[-7,][!colnames(full.data.sbs) %in% c("ERM", "ERMC", "ERMR", "ERMT")]),
+         main="",
+         color= c(my_palette[80], my_palette[200]),
+         annotation_col = samples.sbs,
+         cluster_rows = F,
+         cluster_cols = F,
+         show_colnames = F,
+         fontsize_row=13,
+         gaps_col =  c(3,3,3),
+         legend = F)
+
+#############################################################################################################################################################
+
+# setwd("../BLAST_VFDB/")
+# 
+# list.f <- list.files(pattern = "out")
+# 
+# full.data <- NULL
+# for (i in list.f){
+#       df <- fread(i)
+#       df <- as.data.frame(df)
+#       df$V15 <- df$V4/df$V14
+#       df <- df[df$V15 > 0.8,]
+#       # df$V16 <- sapply(str_split(df$V2, "\\|"), function(x) tail(x, 1))
+#       
+#       dt <- NULL
+#       for (j in unique(df$V2)){
+#             df.sbs <- df[df$V2 == j,]
+#             df.sbs <- df.sbs[df.sbs$V3 == max(df.sbs$V3),]
+#             dt <- rbind(df.sbs, dt)
+#       }
+#       
+#       genes.list <- data.frame(names = unique(dt$V2), pr = 1, sample = gsub(".blast.out", "", i))
+#       full.data <- rbind(full.data, genes.list)    
+# } 
+# 
+# full.data <- spread(full.data, names, pr)
+# full.data[is.na(full.data)] <- 0
+# rownames(full.data) <- full.data$sample
+# full.data <- full.data[-1]
+# 
+# rownames(full.data) <- sapply(lapply(str_split(rownames(full.data), "_"), function(x) head(x, 2)), function(x) paste(x, collapse = "_"))
+# full.data.sbs <- full.data[!rownames(full.data) %in% c("Hp_6-9", "Hp_21-11", "Hp_21-21", "Hp_22-10", "Hp_22-12", "Hp_24-1"),]
+# colnames(full.data.sbs) <- sapply(str_split(colnames(full.data.sbs), "\\("), function(x) head(x, 1))
+# lol2 <- full.data.sbs
+# 
+# full.data.sbs <- cbind(lol1,lol2[,colSums(lol2) > 0])
+# full.data.sbs <- full.data.sbs[!colnames(full.data.sbs) %in% c("ERM", "ERMC", "ERMR", "ERMT")]
+# 
+# genes.annot <- data.frame(names = colnames(full.data.sbs), annotation = "genes")
+# genes.annot$annotation <- as.character(genes.annot$annotation)
+# genes.annot$annotation[1:8] <- "ARGs"
+# genes.annot$annotation[9:13] <- "VF"
+# rownames(genes.annot) <- genes.annot$names
+# genes.annot <- genes.annot[-1]
+# 
+# colnames(genes.annot) <- "Genes groups"
+# 
+# colnames(samples.sbs)[2] <- "Patiend ID"
+# 
+# svg("../../../graphs/heatmaps.isolate.svg")
+# pheatmap(t(full.data.sbs), 
 #          main="", 
 #          color= c(my_palette[80], my_palette[200]),
-#          annotation_col = samples.sbs, 
+#          annotation_col = samples.sbs,
+#          annotation_row = genes.annot,
 #          cluster_rows = F, 
 #          cluster_cols = F, 
 #          show_colnames = F,
 #          fontsize_row=13, 
 #          gaps_col =  c(3,3,3), 
-#          legend = F) 
-# #cellwidth=16.7)
-
-#############################################################################################################################################################
-
-setwd("../BLAST_VFDB/")
-
-list.f <- list.files(pattern = "out")
-
-full.data <- NULL
-for (i in list.f){
-      df <- fread(i)
-      df <- as.data.frame(df)
-      df$V15 <- df$V4/df$V14
-      df <- df[df$V15 > 0.8,]
-      # df$V16 <- sapply(str_split(df$V2, "\\|"), function(x) tail(x, 1))
-      
-      dt <- NULL
-      for (j in unique(df$V2)){
-            df.sbs <- df[df$V2 == j,]
-            df.sbs <- df.sbs[df.sbs$V3 == max(df.sbs$V3),]
-            dt <- rbind(df.sbs, dt)
-      }
-      
-      genes.list <- data.frame(names = unique(dt$V2), pr = 1, sample = gsub(".blast.out", "", i))
-      full.data <- rbind(full.data, genes.list)    
-} 
-
-full.data <- spread(full.data, names, pr)
-full.data[is.na(full.data)] <- 0
-rownames(full.data) <- full.data$sample
-full.data <- full.data[-1]
-
-rownames(full.data) <- sapply(lapply(str_split(rownames(full.data), "_"), function(x) head(x, 2)), function(x) paste(x, collapse = "_"))
-full.data.sbs <- full.data[!rownames(full.data) %in% c("Hp_6-9", "Hp_21-11", "Hp_21-21", "Hp_22-10", "Hp_22-12", "Hp_24-1"),]
-colnames(full.data.sbs) <- sapply(str_split(colnames(full.data.sbs), "\\("), function(x) head(x, 1))
-lol2 <- full.data.sbs
-
-full.data.sbs <- cbind(lol1,lol2[,colSums(lol2) > 0])
-full.data.sbs <- full.data.sbs[!colnames(full.data.sbs) %in% c("ERM", "ERMC", "ERMR", "ERMT")]
-
-genes.annot <- data.frame(names = colnames(full.data.sbs), annotation = "genes")
-genes.annot$annotation <- as.character(genes.annot$annotation)
-genes.annot$annotation[1:8] <- "ARGs"
-genes.annot$annotation[9:13] <- "VF"
-rownames(genes.annot) <- genes.annot$names
-genes.annot <- genes.annot[-1]
-
-colnames(genes.annot) <- "Genes groups"
-
-colnames(samples.sbs)[2] <- "Patiend ID"
-
-svg("../../../graphs/heatmaps.isolate.svg")
-pheatmap(t(full.data.sbs), 
-         main="", 
-         color= c(my_palette[80], my_palette[200]),
-         annotation_col = samples.sbs,
-         annotation_row = genes.annot,
-         cluster_rows = F, 
-         cluster_cols = F, 
-         show_colnames = F,
-         fontsize_row=13, 
-         gaps_col =  c(3,3,3), 
-         legend = F, annotation_names_row = F) 
-dev.off()
+#          legend = F, annotation_names_row = F) 
+# dev.off()
 
 #############################################################################################################################################################
 ## 2. Make tree #############################################################################################################################################
@@ -179,13 +177,13 @@ tree.sh$tip.label <- gsub("\\.ref", "", tree.sh$tip.label)
 
 cls <- list(point_1 = c("Hp_23-9", "Hp_23-14", "Hp_5-10", "Hp_5-7"),
             point_2 = c("Hp_6-10", "Hp_24-3"),
-            point_3 = c("Hp_7-8"),
+            # point_3 = c("Hp_7-8"),
             ref = c("EFE10021"))
 
 lol <- groupOTU(tree.sh, cls)
 
 p1 <- data.frame(p1 = c(0.63, 0.08, 0.09), 
-                 p2 = c(0.15, 0.05,0.13), 
+                 p2 = c(0.15, 0.05, 0.13), 
                  p3 = c(0.11, 0.82, 0.24),
                  p4 = c(0.11, 0.05, 0.54))
 
@@ -200,33 +198,32 @@ dev.off()
 ## 3. Make lineplots ########################################################################################################################################
 #############################################################################################################################################################
 
-Hp_5 <- c(0.63,0.15,0.11,0.11)
-Hp_6 <- c(0.08,0.05,0.82,0.05)
-Hp_7 <- c(0.09,0.13,0.24,0.54)
+Hp_5 <- c(0.63,0.15,0.11)
+Hp_6 <- c(0.08,0.05,0.82)
+# Hp_7 <- c(0.09,0.13,0.24,0.54)
 
-Hp_003 <- as.data.frame(rbind(Hp_5, Hp_6, Hp_7))
+Hp_003 <- as.data.frame(rbind(Hp_5, Hp_6))
 colnames(Hp_003) <- c(
       "TP1 (Hp_5-10)",
       "TP1 (Hp_5-7)",
-      "TP2 (Hp_6-10)", 
-      "TP3 (Hp_7-8)"
+      "TP2 (Hp_6-10)" 
 )
 
 rownames(Hp_003) <- c(
       "TP1 (Hp_5)",
-      "TP2 (Hp_6)",
-      "TP3 (Hp_7)"
+      "TP2 (Hp_6)"
+      # "TP3 (Hp_7)"
 )
 
 Hp_003 <- melt(t(Hp_003))
-Hp_003$X3 <- c(1,1,1,1,2,2,2,2,3,3,3,3)
+Hp_003$X3 <- c(1,1,1,2,2,2)
 Hp_003$X3 <- as.factor(Hp_003$X3)
 
-Hp_003$X4 <- c("Hp_5-10", "Hp_5-7", "Hp_6-10", "Hp_7-8", "Hp_5-10", "Hp_5-7", "Hp_6-10", "Hp_7-8", "Hp_5-10", "Hp_5-7", "Hp_6-10", "Hp_7-8")
+Hp_003$X4 <- c("Hp_5-10", "Hp_5-7", "Hp_6-10", "Hp_5-10", "Hp_5-7", "Hp_6-10")
 Hp_003$X4 <- as.factor(Hp_003$X4)
 colnames(Hp_003)[5] <- "Strain"
 
-svg("../../../graphs/lineplot.isolates1.svg", width = 4, height = 4)
+svg("../../../graphs/lineplot.isolates1.svg", width = 4, height = 5)
 ggplot(Hp_003, aes(X3, value, group = Strain, col = Strain))+
       #geom_point(size = 2)+
       geom_line(size = 1.2, aes(linetype = Strain))+
@@ -234,7 +231,7 @@ ggplot(Hp_003, aes(X3, value, group = Strain, col = Strain))+
       theme(legend.position="bottom")+
       xlab("Time point")+
       ylab("Relative abundance, %")+
-      scale_color_manual(values = my_palette[c(1,1,170,30)])
+      scale_color_manual(values = my_palette[c(1,1,30)])
 dev.off()
 
 #############################################################################################################################################################
@@ -261,7 +258,7 @@ Hp_010$Strain <- c("Hp_23-14", "Hp_23-9", "Hp_24-3", "Hp_23-14", "Hp_23-9", "Hp_
 Hp_010$Strain<- as.factor(Hp_010$Strain)
 Hp_010$X3 <- as.factor(Hp_010$X3)
 
-svg("../../../graphs/lineplot.isolates2.svg", width = 4, height = 4)
+svg("../../../graphs/lineplot.isolates2.svg", width = 4, height = 5)
 ggplot(Hp_010, aes(X3, value, group = Strain, col = Strain))+
       #geom_point(size = 2)+
       geom_line(size = 1.2, aes(linetype = Strain))+
@@ -269,7 +266,7 @@ ggplot(Hp_010, aes(X3, value, group = Strain, col = Strain))+
       theme(legend.position="bottom")+
       xlab("Time point")+
       ylab("Relative abundance, %")+
-      scale_color_manual(values = my_palette[c(1,1,170,200)])
+      scale_color_manual(values = my_palette[c(1,1,30)])
 dev.off()
 
 ##############################################################################################################################################################

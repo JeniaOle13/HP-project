@@ -1,0 +1,75 @@
+Initial Metadata Matrix Size: Rows 80  Columns 3
+Initial Data Matrix Size: Rows 80  Columns 106
+
+Initial Data Count: 106
+Initial Metadata Count: 3
+Data Count after preprocess: 106
+Removed for missing metadata: 0
+Removed for missing data: 2
+Number of data with outliers: 27
+Number of metadata with outliers: 0
+Metadata count which survived clean: 3
+Data count which survived clean: 91
+
+Boostings: 91
+Boosting Errors: 0
+LMs with no terms suriving boosting: 0
+LMs performed: 91
+No custom preprocess QC data.
+
+#Details###########################
+
+Initial Data Count: 
+  [1]   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40  41  42  43  44  45  46  47  48  49  50
+ [48]  51  52  53  54  55  56  57  58  59  60  61  62  63  64  65  66  67  68  69  70  71  72  73  74  75  76  77  78  79  80  81  82  83  84  85  86  87  88  89  90  91  92  93  94  95  96  97
+ [95]  98  99 100 101 102 103 104 105 106 107 108 109
+
+Initial Metadata Count: 
+[1] 1 2 3
+
+Data Count after preprocess: 
+  [1]   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40  41  42  43  44  45  46  47  48  49  50
+ [48]  51  52  53  54  55  56  57  58  59  60  61  62  63  64  65  66  67  68  69  70  71  72  73  74  75  76  77  78  79  80  81  82  83  84  85  86  87  88  89  90  91  92  93  94  95  96  97
+ [95]  98  99 100 101 102 103 104 105 106 107 108 109
+
+Removed for missing metadata: 
+NULL
+
+Removed for missing data: 
+[1] 55 57
+
+Detailed outlier indices: 
+Feature 5 Outlier indice(s): 6,28,45
+Feature 6 Outlier indice(s): 6,7,15,22,24,28,35,41,45,63,69,76
+Feature 7 Outlier indice(s): 22,34
+Feature 10 Outlier indice(s): 6,12,23,35,56,68
+Feature 12 Outlier indice(s): 40,63,64
+Feature 14 Outlier indice(s): 15
+Feature 18 Outlier indice(s): 14,18,28,47,63,70
+Feature 19 Outlier indice(s): 6,17,26,36,45,50,52,56,58,67,76
+Feature 29 Outlier indice(s): 6,7,12,49,57
+Feature 31 Outlier indice(s): 4
+Feature 33 Outlier indice(s): 6,18,20,50
+Feature 35 Outlier indice(s): 20,21,24,27,36,39,61,67
+Feature 37 Outlier indice(s): 18,30,35
+Feature 38 Outlier indice(s): 1,7,31,38,39,40,44,53
+Feature 48 Outlier indice(s): 3,7,15,19,25,30,35,39,46
+Feature 61 Outlier indice(s): 22
+Feature 65 Outlier indice(s): 46,69,74
+Feature 68 Outlier indice(s): 39
+Feature 69 Outlier indice(s): 4,20,24,54,61,63,64
+Feature 73 Outlier indice(s): 13,20,32,33
+Feature 80 Outlier indice(s): 2,11,18,62,65
+Feature 87 Outlier indice(s): 3,5,6,17
+Feature 88 Outlier indice(s): 1,77
+Feature 92 Outlier indice(s): 16,37,58
+Feature 98 Outlier indice(s): 78
+Feature 105 Outlier indice(s): 17,39,64
+Feature 109 Outlier indice(s): 19,20,38,39,60,63,64,79
+
+Metadata which survived clean: 
+[1] 1 2 3
+
+Data which survived clean: 
+ [1]   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  27  28  29  30  31  33  34  35  36  37  38  39  40  41  43  45  46  48  49  50  51  52  53  54  56  58
+[48]  59  60  61  62  63  64  65  66  67  68  69  70  71  72  73  74  75  76  78  79  80  82  83  84  85  86  87  88  89  91  92  94  95  96  97  98  99 100 101 102 105 107 108 109

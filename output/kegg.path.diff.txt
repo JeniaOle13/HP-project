@@ -1,0 +1,12 @@
+Description	ID	Genes tot	p adj dist.dir.up	p adj dist.dir.dn	Genes up	Genes down
+Nitrogen metabolism	ko00910	54	1	0.0069493	5	49
+Bacterial secretion system	ko03070	56	1	0.0069493	4	52
+Steroid hormone biosynthesis	ko00140	3	1	0.013899	0	3
+Galactose metabolism	ko00052	38	1	0.016678	4	34
+Oxidative phosphorylation	ko00190	50	1	0.016678	8	42
+Alanine, aspartate and glutamate metabolism	ko00250	35	1	0.027797	4	31
+Methane metabolism	ko00680	130	0.0027797	1	92	38
+Bacterial chemotaxis	ko02030	25	0.0027797	1	18	7
+Flagellar assembly	ko02040	36	0.0027797	1	31	5
+Ribosome	ko03010	83	0.0027797	1	54	29
+RNA polymerase	ko03020	24	0.0027797	1	18	6

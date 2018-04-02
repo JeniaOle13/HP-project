@@ -17,7 +17,7 @@ setwd(workDir)
 
 # Import libraries and functions ##
 source("src/functions.R")
-
+library(piano)
 set.seed(10)
 
 # Set color pallete ##
@@ -41,12 +41,40 @@ meta.sbs$patient_id <- as.character(meta.sbs$patient_id)
 Point_1 <- as.character(meta.sbs$sample_ID[meta.sbs$point_number == 1])
 Point_2 <- as.character(meta.sbs$sample_ID[meta.sbs$point_number == 2])
 
+megares <- read.csv("data/megares_annotations_v1.01.csv")
+
 ##############################################################################################################################################################
 
 # Import case data ##
 df.group <- read.csv("data/case.group.mgs", sep = " ")
 df.mech <- read.csv("data/case.mech.mgs", row.names = 1)
 df.class <- read.csv("data/case.class.mgs", row.names = 1)
+
+df.group.sbs <- df.group[rownames(df.group) %in% c(Point_1, Point_2),]
+df.mech.sbs <- df.mech[rownames(df.mech) %in% c(Point_1, Point_2),]
+
+df.genes <- read.csv("data/megares/MGS.csv")
+colnames(df.genes)[2] <- "940.AF028812.1.AF028812.Trimethoprim.Dihydrofolate_reductase.DFRF"
+
+df.genes <- df.genes[which(!is.na(str_extract(df.genes$Sample, "HP"))),]
+df.genes$Sample <- gsub("_F3", "", df.genes$Sample)
+df.genes$Sample <- sapply(str_split(df.genes$Sample, "_"), function(x) tail(x, 1))
+rownames(df.genes) <- 1:nrow(df.genes)
+df.genes <- df.genes[-59,]
+df.genes.sbs <- df.genes[df.genes$Sample %in% c(Point_1, Point_2),]
+rownames(df.genes.sbs) <- df.genes.sbs$Sample
+df.genes.sbs <- df.genes.sbs[-1]
+
+df.snps <- read.csv("data/megares/SNPs.csv")
+df.snps <- spread(df.snps, sampleID, count, fill = 0)
+df.snps <- df.snps[-c(1,2)]
+rownames(df.snps) <- df.snps$group
+df.snps <- df.snps[-1]
+df.snps <- df.snps[which(!is.na(str_extract(colnames(df.snps), "HP"))),]
+colnames(df.snps) <- sapply(str_split(colnames(df.snps), "_"), function(x) tail(x, 1))
+df.snps.sbs <- df.snps[colnames(df.snps) %in% c(Point_1, Point_2)]
+df.snps.sbs <- df.snps.sbs[colnames(df.snps.sbs) != "55HP.1"] 
+df.snps.sbs <- as.data.frame(t(df.snps.sbs))
 
 # Import control data ##
 class.control <- read.csv("data/rus.control.class.txt", row.names = 1)
@@ -232,5 +260,128 @@ ggplot(df.class.sbs[df.class.sbs$variable %in% c("MLS", "betalactams", "Tetracyc
 dev.off()
 
 ##############################################################################################################################################################
-######################################################################## THE END #############################################################################
+KoData <- df.genes.sbs
+
+gr1 <- Point_2
+gr2 <- Point_1
+
+pval_gen <- c()
+lfc <- c()
+for (i in colnames(KoData))
+{    
+      w1<-wilcox.test(as.matrix(KoData[gr1,i]), as.matrix(KoData[gr2,i]), alternative='less', paired = T)
+      w2<-wilcox.test(as.matrix(KoData[gr1,i]), as.matrix(KoData[gr2,i]), alternative='greater', paired = T)
+      # stub for NA p-values
+      if(is.na(w1$p.value) || is.na(w2$p.value))
+      {
+            if (is.na(w1$p.value) && !is.na(w2$p.value)) {
+                  pval_gen<-append(pval_gen, w2$p.value)
+                  lfc<-append(lfc, -1)
+            }
+            if (is.na(w2$p.value) && !is.na(w1$p.value)) {
+                  pval_gen<-append(pval_gen, w1$p.value)
+                  lfc<-append(lfc, 1)
+            }
+            if (is.na(w2$p.value) && is.na(w1$p.value)) {
+                  pval_gen<-append(pval_gen, 1)
+                  lfc<-append(lfc, 0)
+            }
+      }
+      else # detect direction of change 
+      {
+            
+            if(w1$p.value < w2$p.value)
+            {
+                  lfc<-append(lfc, 1)
+                  pval_gen<-append(pval_gen, w1$p.value)
+            }
+            else
+            {
+                  lfc<-append(lfc, -1)
+                  pval_gen<-append(pval_gen,  w2$p.value)
+            }
+            
+      }  
+}
+
+pval_gen <- p.adjust(pval_gen, method='fdr')
+pval <- pval_gen
+names(pval) <- colnames(KoData)
+names(lfc) <- colnames(KoData)
+
+myGsc <- loadGSC(megares[c(1,3)]) #load pathway to KO connection table
+
+
+# pval_ap < -append(pval, rep(1,length(unique(kegg_parsed_inv[-which(kegg_parsed_inv[,1] %in% names(pval)),1])))) 
+# names(pval_ap) < -append(names(pval), as.vector(unique(kegg_parsed_inv[-which(kegg_parsed_inv[,1] %in% names(pval)),1])))
+# lfc_ap < -append(lfc, rep(0,length(unique(kegg_parsed_inv[-which(kegg_parsed_inv[,1] %in% names(lfc)),1]))))
+# names(lfc_ap) <- append(names(lfc), as.vector(unique(kegg_parsed_inv[-which(kegg_parsed_inv[,1] %in% names(lfc)),1])))
+
+myPval <- pval
+names(myPval) <- gsub("\\.", "\\|", names(myPval))
+myFC <- lfc  
+names(myFC) <- names(myPval)
+#run Reporter Feature Algorythm from piano package
+
+gsaRes <- runGSA(myPval, myFC, gsc=myGsc,
+                 geneSetStat="reporter",
+                 signifMethod="geneSampling",
+                 nPerm=10000)                 
+
+lol <- GSAsummaryTable(gsaRes)
+
+lol <- lol[c(1,5,8)]
+lol[lol$`p adj (dist.dir.up)` < 0.05,]
+lol[lol$`p adj (dist.dir.dn)` < 0.05,]
+
+write.table(lol, "lol.tsv", quote = F, sep = "\t")
+##############################################################################################################################################################
+df.mech.23S <- df.mech.sbs["X23S.rRNA.methyltransferases"]
+
+df.mech.23S$time_point[rownames(df.mech.sbs) %in% Point_1] <- "1"
+df.mech.23S$time_point[rownames(df.mech.sbs) %in% Point_2] <- "2"
+df.mech.23S <- df.mech.23S[order(df.mech.23S$time_point, decreasing = T),]
+colnames(df.mech.23S)[1] <- "Relative_abundance"
+df.mech.23S$time_point <- as.factor(df.mech.23S$time_point)
+
+svg("23S-methil.svg", width = 2, height = 3)
+ggboxplot(df.mech.23S, x = "time_point", y = "Relative_abundance",
+          color = "time_point", add = "jitter", size = 1.1,
+          palette = my_palette[c(1,200)])+
+      # stat_compare_means(paired = TRUE, label.x.npc = 0.5, label.y.npc = 1.0)+
+      theme_linedraw()+
+      theme(legend.position="none")+
+      xlab("Time point")+
+      ylab("Relative abundance, RPKM")
+dev.off()
+##############################################################################################################################################################
+library(tsne)
+df.snps.sbs <- df.snps.sbs[which(!is.na(str_extract(colnames(df.snps.sbs), "ERM")))]
+# df.snps.sbs <- df.snps.sbs[-c(2,4,7:8)]
+df.go <- as.data.frame(df.go)
+
+mds <- metaMDS(df.snps.sbs, distance = "bray")
+mds.points <- as.data.frame(mds$points)
+mds.points <- merge(meta.sbs[c(1,2,11)], cbind(rownames(mds.points), mds.points), by = 1)
+mds.points$point_number <- as.factor(mds.points$point_number)
+
+plot(df.snps.sbs$ERMB, df.snps.sbs$ERMF)
+
+# envfit(mds, df.snps.sbs, permutations = 10000)
+ggplot(mds.points, aes(MDS1, MDS2, col = point_number))+
+      geom_point()+
+      theme_linedraw()+
+      stat_ellipse()
+
+plot(df.snps.sbs$ERMB[rownames(df.snps.sbs) %in% Point_1])
+plot(df.snps.sbs$ERMB[rownames(df.snps.sbs) %in% Point_2])
+
+wilcox.test(df.snps.sbs$ERMB[rownames(df.snps.sbs) %in% Point_1], df.snps.sbs$ERMB[rownames(df.snps.sbs) %in% Point_2], paired = T, alternative = "less")
+wilcox.test(df.snps.sbs$ERM[rownames(df.snps.sbs) %in% Point_1], df.snps.sbs$ERM[rownames(df.snps.sbs) %in% Point_2], paired = T, alternative = "less")
+
+gr.alpha <- specnumber(df.genes.sbs)
+
+wilcox.test(gr.alpha[names(gr.alpha) %in% Point_1], gr.alpha[names(gr.alpha) %in% Point_2], paired = T, alternative = "less")
+boxplot(log(gr.alpha[names(gr.alpha) %in% Point_1]), log(gr.alpha[names(gr.alpha) %in% Point_2]))
+
 ##############################################################################################################################################################

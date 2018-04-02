@@ -1,0 +1,5 @@
+Matrix: Metadata
+Read_PCL_Rows: Gender,Duodenal.ulcer,Time.point.number
+
+Matrix: Abundance
+Read_PCL_Rows: Acidaminococcus-Veillonella
