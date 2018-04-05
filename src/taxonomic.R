@@ -2,21 +2,6 @@
 ################################################################ Taxonomic data processing ##################################################################
 #############################################################################################################################################################
 
-# Description:
-
-# 1. Import datasets - import metadata and taxonomic data obtained by MetaPhlAn2 (including in HUMAnN2 pipeline).
-# 2. Alpha-diversity - calculation alpha-diversity index (Sahnnon index), Wilcoxon statistics calculation between first and second time points 
-# and make boxplot.
-# 3. Top taxa calculation - calculation MEANs and SDs value for most prevalent genera and species relative abundance.
-# 4. MDS family level - make non-metric MDS plot using famuly taxonomic data (Bray-Curtis dissimilarity). 
-# 5. Heatmaps (genera and species levels) - make heatmaps using species and genera taxonomic levels (ward linkage for hierarchical clusterization).
-# 6. LefSe results processing - processing  tables of LefSe results and make relative abundances boxplots for detected features by LefSe analysis. 
-# 7. Opportunistic and pathogens diff between first and second time points - Wilcoxon testing and ploting data of the relative abundance of 
-# opportunistic bacteria.
-# 8. MDSs for different taxonomic levels (firs and second time points) - make non-metric MDS (NMDS) plots for different taxonomic levels betweent 
-# first and second time points.
-
-##############################################################################################################################################################
 # Set work directory ##
 workDir <- "/home/acari/Рабочий стол/HP_project/"
 setwd(workDir)
@@ -33,7 +18,8 @@ my_palette <- colorRampPalette(rev(brewer.pal(11,"Spectral")))(200)
 ##############################################################################################################################################################
 ## 1. Import datasets ########################################################################################################################################
 ##############################################################################################################################################################
-
+df.org.sbs <- df.org[rownames(df.org) %in% c(Point_1, Point_2),]
+df.org.sbs$Escherichia_coli
 # Import metadata ##
 meta.data <- read.csv("data/meta_case.csv")
 
@@ -49,7 +35,7 @@ Point_1 <- as.character(meta.sbs$Sample_ID[meta.sbs$Time.point.number == 1])
 Point_2 <- as.character(meta.sbs$Sample_ID[meta.sbs$Time.point.number == 2])
 
 meta.data.sbs <- meta.data[meta.data$Sample_ID %in% c(Point_1, Point_2),]
-write.table(meta.data.sbs, "meta.sbs.tsv" , quote = F)
+# write.table(meta.data.sbs, "meta.sbs.tsv" , quote = F)
 
 ##############################################################################################################################################################
 # Import case data ##
@@ -68,10 +54,10 @@ healthy.fam <- read.table("data/healthy.fam.txt")
 
 metafast.healthy <- read.table("data/metafast/healthy.metafast.txt", row.names = 1)
 
-df.org.sbs <- df.org[rownames(df.org) %in% meta.data.sbs$sample_ID,]
-ef.df <- merge(meta.data.sbs[c(1,2,11)], data.frame(sample_ID = row.names(df.org.sbs), df.org.sbs$Enterococcus_faecium), by = 1)
-ef.df[order(ef.df$patient_id),]
-unique(ef.df$patient_id)
+# df.org.sbs <- df.org[rownames(df.org) %in% meta.data.sbs$sample_ID,]
+# ef.df <- merge(meta.data.sbs[c(1,2,11)], data.frame(sample_ID = row.names(df.org.sbs), df.org.sbs$Enterococcus_faecium), by = 1)
+# ef.df[order(ef.df$patient_id),]
+# unique(ef.df$patient_id)
 
 ##############################################################################################################################################################
 ## 2. Reference-free analysis ################################################################################################################################
@@ -297,13 +283,14 @@ alpha.div <- data.frame(spec_num = spec_num,
                         shannon = shannon.i, 
                         simpson = simpson.i)
 
-alpha.div <- merge(cbind(rownames(alpha.div), alpha.div), meta.data[c(1,11)], by = 1)
-alpha.div$point_number <- as.factor(alpha.div$point_number)
+alpha.div <- merge(cbind(rownames(alpha.div), alpha.div), meta.data[c(1,10)], by = 1)
+alpha.div$Time.point.number <- as.factor(alpha.div$Time.point.number)
 colnames(alpha.div)[1] <- "sampleID"
 
 # Wilcoxon signed-rank paired test ##
 index.names <- colnames(alpha.div[-c(1,5)])
 alpha.div.sbs <- alpha.div[as.character(alpha.div$sampleID) %in% c(Point_1, Point_2),]
+colnames(alpha.div.sbs)[5] <- "point_number"
 
 alpha.p <- NULL
 for (k in index.names){
@@ -333,13 +320,13 @@ index.names2 <- colnames(alpha.div)[-c(1,5)]
 # Make boxplots ##
 alpha.div.t <- melt(alpha.div)
 colnames(alpha.div.t)[3] <- c("index")
-alpha.div.t <- alpha.div.t[alpha.div.t$point_number != 3,]
+alpha.div.t <- alpha.div.t[alpha.div.t$Time.point.number != 3,]
 alpha.div.t2 <- alpha.div.t[alpha.div.t$sampleID %in% c(Point_1, Point_2),]
 
 for (i in index.names2){
       svg(paste0("graphs/alpha-", i,".svg"), width = 3, height = 5)
-      figure <- ggboxplot(alpha.div.t2[alpha.div.t2$index == i,], x = "point_number", y = "value",
-            color = "point_number", add = "jitter",
+      figure <- ggboxplot(alpha.div.t2[alpha.div.t2$index == i,], x = "Time.point.number", y = "value",
+            color = "Time.point.number", add = "jitter",
             palette = my_palette[c(1,50,130)])+
             stat_compare_means(paired = TRUE, label.x.npc = 0.5, label.y.npc = 1.0)+
             theme_linedraw()+
@@ -373,7 +360,7 @@ for (i in index.names2){
 ## 5. Changes in the taxonomy distance and alpha-diversity (first and second time points) ###################################################################
 #############################################################################################################################################################
 alpha.div.sbs <- merge(meta.data[c(1,2)], alpha.div.sbs, by = 1)
-alpha.div.sbs <- alpha.div.sbs[order(alpha.div.sbs$patient_id),]
+alpha.div.sbs <- alpha.div.sbs[order(alpha.div.sbs$Patient_ID),]
 
 spec_num.changes <- abs(alpha.div.sbs$spec_num[alpha.div.sbs$point_number == 1] - alpha.div.sbs$spec_num[alpha.div.sbs$point_number == 2])
 shannon.changes <- abs(alpha.div.sbs$shannon[alpha.div.sbs$point_number == 1] - alpha.div.sbs$shannon[alpha.div.sbs$point_number == 2])
@@ -391,29 +378,29 @@ df.fam.sbs <- cbind(rownames(df.fam.sbs), df.fam.sbs)
 
 colnames(df.fam.sbs)[1] <- "sampleID"
 df.fam.sbs <- merge(meta.data[c(1,2)], df.fam.sbs, by = 1)
-df.fam.sbs <- df.fam.sbs[order(df.fam.sbs$patient_id),]
-patID <- as.character(unique(df.fam.sbs$patient_id))
+df.fam.sbs <- df.fam.sbs[order(df.fam.sbs$Patient_ID),]
+patID <- as.character(unique(df.fam.sbs$Patient_ID))
 
 bray.dist <- NULL
 for (i in patID){
-      di <- metaMDSdist(df.fam.sbs[df.fam.sbs$patient_id == i,][-c(1:2)], distance = "bray")
+      di <- metaMDSdist(df.fam.sbs[df.fam.sbs$Patient_ID == i,][-c(1:2)], distance = "bray")
       bray.dist <- rbind(data.frame(patientID = i, bray_dist = as.vector(di)), bray.dist)
 }
 
 jaccard.dist <- NULL
 for (i in patID){
-      di <- metaMDSdist(df.fam.sbs[df.fam.sbs$patient_id == i,][-c(1:2)], distance = "jaccard")
+      di <- metaMDSdist(df.fam.sbs[df.fam.sbs$Patient_ID == i,][-c(1:2)], distance = "jaccard")
       jaccard.dist <- rbind(data.frame(patientID = i, jaccard_dist = as.vector(di)), jaccard.dist)
 }
 
 euclid.dist <- NULL
 for (i in patID){
-      di <- metaMDSdist(df.fam.sbs[df.fam.sbs$patient_id == i,][-c(1:2)], distance = "euclidean")
+      di <- metaMDSdist(df.fam.sbs[df.fam.sbs$Patient_ID == i,][-c(1:2)], distance = "euclidean")
       euclid.dist <- rbind(data.frame(patientID = i, euclid_dist = as.vector(di)), euclid.dist)
 }
 
 df.dist <- join_all(list(bray.dist, jaccard.dist, euclid.dist), by = 1, type = 'full')
-alpha.changes <- data.frame(patientID = unique(alpha.div.sbs$patient_id), spec_num.changes, shannon.changes, simpson.changes)
+alpha.changes <- data.frame(patientID = unique(alpha.div.sbs$Patient_ID), spec_num.changes, shannon.changes, simpson.changes)
 df.changes <- merge(alpha.changes, df.dist, by = 1)
 
 write.table(df.changes, 'output/ch.2p.txt', quote=F, sep='\t', row.names = F)
@@ -557,7 +544,7 @@ ggplot(all.changes, aes(bray_dist, simpson.changes, shape = as.factor(time_point
       # geom_text(label = df.changes$patientID)+
       theme_linedraw()+
       xlab("Bray-Curtis distance")+
-      ylab("Shannon index change")+
+      ylab("Simpson index change")+
       scale_color_manual(name = "Status", values = c("dodgerblue4","firebrick4"))+
       scale_shape_manual(name = "Days", values = c(0,17,20))+
       theme(legend.position = "bottom")
@@ -670,7 +657,8 @@ ggboxplot(df.DU, x = "group", y = "changes",
       stat_compare_means(label.x.npc = 0.5, label.y.npc = 1.0)+
       theme_linedraw()+
       theme(legend.position="none")+
-      xlab("Time point")+
+      ylab("Bray-Сurtis distance")+
+      xlab("Status")+
       ggtitle("Duodenal ulcer")
 dev.off()
 
@@ -681,7 +669,8 @@ ggboxplot(df.Gender, x = "group", y = "changes",
       stat_compare_means(label.x.npc = 0.5, label.y.npc = 1.0)+
       theme_linedraw()+
       theme(legend.position="none")+
-      xlab("Time point")+
+      ylab("Bray-Сurtis distance")+
+      xlab("Gender")+
       ggtitle("Gender")
 dev.off()
 
